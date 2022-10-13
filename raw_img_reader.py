@@ -14,6 +14,7 @@ import os
 import sys
 import matplotlib.pyplot as plt
 import numpy as np
+import png
 
 ## Custom Script Imports
 from bitconverter import conv_12to16
@@ -35,6 +36,9 @@ elif not sys.argv[1].endswith(".raw"):
 ## Detect output path
 if len(sys.argv) == 3:
     OUT = sys.argv[2]
+    
+## Desired output bitdepth (False = 8b, True = 16b)
+OUT16b = True
 
 
 ##############################
@@ -46,16 +50,10 @@ PATH     = sys.argv[1]
 img_data = np.fromfile(PATH,dtype=np.uint16)
 X_DIM    = 1024
 Y_DIM    = 768
-print(len(img_data))
 
 ## Convert 12bit format to 16bit
 #img_data = conv_12to16(img_data)
 #Y_DIM    = Y_DIM*2//3
-
-## Create cmap and normalization instance
-cmap = plt.cm.gray
-norm = plt.Normalize(vmin=np.min(img_data),vmax=np.max(img_data))
-inst = cmap(norm(img_data))
 
 ## Try to reshape the data into a recognizable image
 try:
@@ -63,12 +61,32 @@ try:
 except:
     raise ValueError(f"Wrong size reshape: Image {img_data.shape}")
 
-plt.imsave(OUT,inst)
 
-"""
-plt.imshow(img_data,cmap="gray")
-if len(sys.argv) == 3:
-    plt.savefig(OUT)
-else:
-    plt.show()
-"""
+##############################
+## Generate 8-bit Image Using Imshow
+##############################
+
+if OUT16b == False or len(sys.argv) == 2:
+
+    ## Create cmap and normalization instance
+    cmap = plt.cm.gray
+    norm = plt.Normalize(vmin=np.min(img_data),vmax=np.max(img_data))
+    inst = cmap(norm(img_data))
+
+    ## Either display the image or save the image
+    if len(sys.argv) == 2:
+        plt.imshow(img_data,cmap="gray")
+        plt.show()
+    else:
+        plt.imsave(OUT,inst)
+
+
+##############################
+## Generate 16-bit Image Using pypng
+##############################
+
+elif OUT16b is True:
+    
+    with open(OUT,'wb') as f:
+        writer = png.Writer(width=X_DIM, height=Y_DIM, bitdepth=16, greyscale=True)
+        writer.write(f,img_data)
