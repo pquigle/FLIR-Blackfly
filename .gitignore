@@ -1,0 +1,12 @@
+#ignore data folder and logs
+**/data
+**/logs
+
+#ignore Jupyter Notebooks used for testing
+*.ipynb
+
+#ignore __pycache__
+**/__pycache__
+
+#ignore test files
+Test*

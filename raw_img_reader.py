@@ -43,14 +43,19 @@ if len(sys.argv) == 3:
 
 ## Import image data and define dimensions
 PATH     = sys.argv[1]
-img_data = np.fromfile(PATH,dtype=np.uint8)
+img_data = np.fromfile(PATH,dtype=np.uint16)
 X_DIM    = 1024
 Y_DIM    = 768
 print(len(img_data))
 
 ## Convert 12bit format to 16bit
-img_data = conv_12to16(img_data)
+#img_data = conv_12to16(img_data)
 #Y_DIM    = Y_DIM*2//3
+
+## Create cmap and normalization instance
+cmap = plt.cm.gray
+norm = plt.Normalize(vmin=np.min(img_data),vmax=np.max(img_data))
+inst = cmap(norm(img_data))
 
 ## Try to reshape the data into a recognizable image
 try:
@@ -58,8 +63,12 @@ try:
 except:
     raise ValueError(f"Wrong size reshape: Image {img_data.shape}")
 
+plt.imsave(OUT,inst)
+
+"""
 plt.imshow(img_data,cmap="gray")
 if len(sys.argv) == 3:
     plt.savefig(OUT)
 else:
     plt.show()
+"""
