@@ -29,16 +29,20 @@ if len(sys.argv) != 2 and len(sys.argv) != 3:
     raise ValueError("Usage: python3 raw_img_reader.py RAW_IMG_PATH [OUTPUT PATH]")
 elif not os.path.isfile(sys.argv[1]):
     raise ValueError("File does not exist")
-elif not sys.argv[1].endswith(".raw"):
+elif not sys.argv[1].lower().endswith(".raw"):
     raise ValueError("File is not a .raw type")
 
 
-## Detect output path
+## Detect output path and determine if the output is of PNG format to save as
+## a 16-bit image, instead of 8-bit
 if len(sys.argv) == 3:
     OUT = sys.argv[2]
     
-## Desired output bitdepth (False = 8b, True = 16b)
-OUT16b = True
+    if OUT.lower().endswith(".png"):
+        PNG = True
+
+else:
+    PNG = False
 
 
 ##############################
@@ -60,13 +64,13 @@ try:
     img_data = img_data.reshape((Y_DIM,X_DIM))
 except:
     raise ValueError(f"Wrong size reshape: Image {img_data.shape}")
-
+    
 
 ##############################
 ## Generate 8-bit Image Using Imshow
 ##############################
 
-if OUT16b == False or len(sys.argv) == 2:
+if PNG == False or len(sys.argv) == 2:
 
     ## Create cmap and normalization instance
     cmap = plt.cm.gray
@@ -85,7 +89,7 @@ if OUT16b == False or len(sys.argv) == 2:
 ## Generate 16-bit Image Using pypng
 ##############################
 
-elif OUT16b is True:
+elif PNG == True:
     
     with open(OUT,'wb') as f:
         writer = png.Writer(width=X_DIM, height=Y_DIM, bitdepth=16, greyscale=True)
