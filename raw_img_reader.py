@@ -26,7 +26,7 @@ from bitconverter import conv_12to16
 
 ## Sanitize inputs
 if len(sys.argv) != 2 and len(sys.argv) != 3:
-    raise ValueError("Usage: python3 raw_img_reader.py RAW_IMG_PATH [OUTPUT PATH]")
+    raise ValueError("Usage: python3 raw_img_reader.py RAW_IMG_PATH [OUTPUT_PATH]")
 elif not os.path.isfile(sys.argv[1]):
     raise ValueError("File does not exist")
 elif not sys.argv[1].lower().endswith(".raw"):

@@ -33,6 +33,6 @@ for RAW_Name in ${1}/*; do
     PNG_Name="${BASE}.png"
 
     # Convert RAW image format
-    python3 raw_img_reader.py "${RAW_Name}" "${2}${PNG_Name}"
+    python3 raw_img_reader.py "${RAW_Name}" "${2}/${PNG_Name}"
   fi
 done
