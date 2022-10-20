@@ -26,7 +26,18 @@ from bitconverter import conv_12to16
 
 def RAWtoPNG(img_path,save_path=None,bitdepth=16):
     """
+    Convert .raw file into a .png. Saves the file if a savepath is specified.
+    Otherwise, just displays it.
     
+        Parameters:
+            img_path (str): Filepath to the .raw image
+            save_path (str): Savepath for the output png file. "None" only
+                             displays the image.
+            bitdepth (int): Bitdepth of output image. 8-bit and 16-bit are
+                            currently supported
+                            
+        Returns:
+            None
     """
     
     ## Identify and use the correct image bitdepth to load in the image
@@ -55,17 +66,22 @@ def RAWtoPNG(img_path,save_path=None,bitdepth=16):
         
     elif save_path.lower().endswith(".png"):
         with open(save_path,"wb") as f:
-            writer = png.Writer(width=X_DIM, height=Y_DIM, bitdepth=16, greyscale=True)
+            writer = png.Writer(width=X_DIM, height=Y_DIM, bitdepth=bitdepth, greyscale=True)
             writer.write(f,img_data)
     
 
-##############################
-## Directory Iterator
-##############################
-
 def RAW_PNG_DirIter(target_dir,output_dir):
     """
+    Iterates through a target directory and converts all .raw files present
+    into .png files in the given output directory. Uses RAWtoPNG function.
     
+        Parameters:
+            target_dir (str): Filepath to target directory
+            output_dir (str): Filepath to save directory. Must either not exist
+                              or must be an empty directory.
+                              
+        Returns:
+            None
     """
     
     ## Sanitize inputs and create output directory
