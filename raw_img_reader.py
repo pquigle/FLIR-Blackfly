@@ -21,76 +21,100 @@ from bitconverter import conv_12to16
 
 
 ##############################
-## Error Handling
+## 8-bit/16-bit RAW to PNG Converter
 ##############################
 
-## Sanitize inputs
-if len(sys.argv) != 2 and len(sys.argv) != 3:
-    raise ValueError("Usage: python3 raw_img_reader.py RAW_IMG_PATH [OUTPUT_PATH]")
-elif not os.path.isfile(sys.argv[1]):
-    raise ValueError("File does not exist")
-elif not sys.argv[1].lower().endswith(".raw"):
-    raise ValueError("File is not a .raw type")
-
-
-## Detect output path and determine if the output is of PNG format to save as
-## a 16-bit image, instead of 8-bit
-if len(sys.argv) == 3:
-    OUT = sys.argv[2]
+def RAWtoPNG(img_path,save_path=None,bitdepth=16):
+    """
     
-    if OUT.lower().endswith(".png"):
-        PNG = True
-
-else:
-    PNG = False
-
-
-##############################
-## Read Raw File
-##############################
-
-## Import image data and define dimensions
-PATH     = sys.argv[1]
-img_data = np.fromfile(PATH,dtype=np.uint16)
-X_DIM    = 1024
-Y_DIM    = 768
-
-## Convert 12bit format to 16bit
-#img_data = conv_12to16(img_data)
-#Y_DIM    = Y_DIM*2//3
-
-## Try to reshape the data into a recognizable image
-try:
-    img_data = img_data.reshape((Y_DIM,X_DIM))
-except:
-    raise ValueError(f"Wrong size reshape: Image {img_data.shape}")
+    """
     
+    ## Identify and use the correct image bitdepth to load in the image
+    if bitdepth == 16:
+        img_data = np.fromfile(img_path,dtype=np.uint16)
+    elif bitdepth == 8:
+        img_data = np.fromfile(img_path,dtype=np.uint8)
+    else:
+        raise ValueError("Only 8-bit and 16-bit images are currently supported")
+    
+    ## Load in the image
+    X_DIM    = 1024
+    Y_DIM    = 768
 
-##############################
-## Generate 8-bit Image Using Imshow
-##############################
-
-if PNG == False or len(sys.argv) == 2:
-
-    ## Create cmap and normalization instance
-    cmap = plt.cm.gray
-    norm = plt.Normalize(vmin=np.min(img_data),vmax=np.max(img_data))
-    inst = cmap(norm(img_data))
-
-    ## Either display the image or save the image
-    if len(sys.argv) == 2:
+    ## Reshape 1D bit array into proper 1024x768 pixel shape
+    try:
+        img_data = img_data.reshape((Y_DIM,X_DIM))
+    except:
+        raise ValueError(f"Invalid image shape {img_data.shape}")
+    
+    
+    ## Either show image using matplotlib or save using png
+    if save_path == None:
         plt.imshow(img_data,cmap="gray")
         plt.show()
-    else:
-        plt.imsave(OUT,inst)
-
-
-##############################
-## Generate 16-bit Image Using pypng
-##############################
-
-elif PNG == True:
+        
+    elif save_path.lower().endswith(".png"):
+        with open(save_path,"wb") as f:
+            writer = png.Writer(width=X_DIM, height=Y_DIM, bitdepth=16, greyscale=True)
+            writer.write(f,img_data)
     
-    with open(OUT,'wb') as f:
-        writer = png.Writer(width=X_DIM, height=Y_DIM, bitdepth=16, greyscale=True)
-        writer.write(f,img_data)
+
+##############################
+## Directory Iterator
+##############################
+
+def RAW_PNG_DirIter(target_dir,output_dir):
+    """
+    
+    """
+    
+    ## Sanitize inputs and create output directory
+    if not os.path.isdir(target_dir):
+        raise FileNotFoundError(f"{target_dir} is not an existing directory")
+    elif os.path.exists(output_dir):
+        if os.path.isdir(output_dir):
+            os.rmdir(output_dir)
+        else:
+            raise NotADirectoryError(f"{target_dir} is an existing file")
+    os.mkdir(output_dir)
+    
+    ## Convert RAW files in target_dir into PNG files in output_dir
+    for fname in os.listdir(target_dir):
+        if fname.lower().endswith((".raw")):
+            # Replace .raw with .png
+            png_name = fname[:-4] + ".png"
+            
+            # Call RAWtoPNG() on current raw file
+            RAWtoPNG(target_dir+fname, output_dir+png_name)
+            
+    print("All files converted successfully")
+
+
+##############################
+## Main
+##############################
+
+if __name__ == "__main__":
+    
+    ## Sanitize inputs and run RAWtoPNG()
+    if len(sys.argv) == 1:
+        print("Usage: python3 raw_img_reader.py RAW_IMG_PATH [OUTPUT_PATH]")
+        sys.exit()
+        
+    elif len(sys.argv) == 2:
+        if not os.path.isfile(sys.argv[1]):
+            sys.exit(f"{sys.argv[1]} does not exist")
+        elif not sys.argv[1].lower().endswith(".raw"):
+            sys.exit(f"{sys.argv[1]} is not .raw type")
+        
+        RAWtoPNG(sys.argv[1])
+            
+    elif len(sys.argv) == 3:
+        if not os.path.isfile(sys.argv[1]):
+            sys.exit(f"{sys.argv[1]} does not exist")
+        elif not sys.argv[1].lower().endswith(".raw"):
+            sys.exit(f"{sys.argv[1]} is not .raw type")
+        elif not sys.argv[2].lower().endswith(".png"):
+            sys.exit(f"{sys.argv[2]} is not .png type")
+            
+        RAWtoPNG(sys.argv[1],sys.argv[2])

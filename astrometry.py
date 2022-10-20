@@ -12,8 +12,10 @@ $Description$
 """
 
 import sys,os
-import cv2
+import cv2 #TODO: opencv has a conflict which causes png to write a blank file
+#import png
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 ##############################
@@ -38,7 +40,7 @@ def circularMask(img_path, save_path=None):
     ## Create the circular mask (assumes 16-bit image)
     mask = np.zeros(image.shape, dtype=np.uint16)
     mask = cv2.circle(mask, 
-                      (image.shape[0]//2,image.shape[1]//2),
+                      (image.shape[1]//2,image.shape[0]//2),
                       min(image.shape)//2, 
                       (255,255,255), 
                       -1)
@@ -46,17 +48,33 @@ def circularMask(img_path, save_path=None):
     ## Generate masked image
     masked_img = cv2.bitwise_and(image, mask)
     
+    ## Decide to either show the image in a plt window or save as PNG
     if save_path == None:
-        cv2.imshow('Masked Image', masked_img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        plt.imshow(masked_img,cmap="gray")
+        plt.show()
+    elif save_path.lower().endswith(".png"):
+        """
+        with open(save_path,'wb') as f:
+            writer = png.Writer(width=masked_img.shape[1],
+                                height=masked_img.shape[0],
+                                bitdepth=16,
+                                greyscale=True)
+            writer.write(f,masked_img)
+        """
+        cv2.imwrite(save_path,masked_img)
     else:
-        cv2.imwrite(save_path, masked_img)
+        print("TypeError: Can only save as a png file!")
+        return
 
+
+##############################
+## Call Astrometry.net
+##############################
 
 def astrometrySoln(img_path, save_path, soln_order):
     """
     Attempt to solve a given image's astrometry using nova.astrometry.net
+    Credit to Michael Mazur and Rachel Brown for the script template
     
         Parameters:
             img_path (str): Path to the image
@@ -83,6 +101,9 @@ def astrometrySoln(img_path, save_path, soln_order):
     return wcs_header
 
 
+##############################
+## Main
+##############################
 
 if __name__ == "__main__":
     
